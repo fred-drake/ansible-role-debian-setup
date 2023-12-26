@@ -4,7 +4,7 @@
   gather_facts: false
   vars:
     ansible_user: root
-    host: ""  # Docker container can't set hostname
-    timezone: ""  # Docker container can't set timezone
+    debian_setup_host: ""  # Docker container can't set hostname
+    debian_setup_timezone: ""  # Docker container can't set timezone
   roles:
     - role: fred_drake.debian_setup

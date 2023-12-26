@@ -4,8 +4,8 @@
   ansible.posix.authorized_key:
     user: "{{ ansible_user }}"
     state: present
-    key: "{{ lookup('url', authorized_keys_url) }}"
-  when: authorized_keys_url is defined and authorized_keys_url != ""
+    key: "{{ lookup('url', debian_setup_authorized_keys_url) }}"
+  when: debian_setup_authorized_keys_url is defined and debian_setup_authorized_keys_url != ""
 
 - name: Make sure we have a 'wheel' group
   ansible.builtin.group:
@@ -19,7 +19,7 @@
     regexp: '^%wheel'
     line: '%wheel ALL=(ALL) NOPASSWD: ALL'
     validate: 'visudo -cf %s'
-  when: allow_passwordless_sudo is defined and allow_passwordless_sudo
+  when: debian_setup_allow_passwordless_sudo is defined and debian_setup_allow_passwordless_sudo
 
 - name: Add sudoers users to wheel group
   ansible.builtin.user:
@@ -29,7 +29,7 @@
     append: true
     state: present
     createhome: true
-  when: allow_passwordless_sudo is defined and allow_passwordless_sudo
+  when: debian_setup_allow_passwordless_sudo is defined and debian_setup_allow_passwordless_sudo
 
 - name: Disable automatic daily upgrade
   ansible.builtin.systemd:
@@ -40,20 +40,20 @@
 
 - name: Set hostname
   ansible.builtin.hostname:
-    name: "{{ host }}"
-  when: host is defined and host != ""
+    name: "{{ debian_setup_host }}"
+  when: debian_setup_host is defined and debian_setup_host != ""
 
 - name: Set timezone
   community.general.timezone:
-    name: "{{ timezone }}"
-  when: timezone is defined and timezone != ""
+    name: "{{ debian_setup_timezone }}"
+  when: debian_setup_timezone is defined and debian_setup_timezone != ""
 
 - name: Write host-specific apt sources file
   ansible.builtin.copy:
-    content: "{{ host_specific_apt_sources }}"
+    content: "{{ debian_setup_host_specific_apt_sources }}"
     dest: /etc/apt/sources.list.d/custom.sources
     mode: '0644'
-  when: host_specific_apt_sources is defined and host_specific_apt_sources != ""
+  when: debian_setup_host_specific_apt_sources is defined and debian_setup_host_specific_apt_sources != ""
 
 - name: Install initial libraries
   ansible.builtin.apt:
@@ -117,8 +117,8 @@
     src: "{{ item.src | default(omit) }}"
     fstype: "{{ item.fstype | default(omit) }}"
     state: mounted
-  loop: "{{ host_specific_mounts }}"
-  when: host_specific_mounts is defined and (host_specific_mounts | length > 0)
+  loop: "{{ debian_setup_host_specific_mounts }}"
+  when: debian_setup_host_specific_mounts is defined and (debian_setup_host_specific_mounts | length > 0)
 
 - name: Install firewalld for port opening
   ansible.builtin.apt:
@@ -126,7 +126,9 @@
       - firewalld
     state: present
     update_cache: true
-  when: host_specific_firewall_ports is defined and (host_specific_firewall_ports | length > 0)
+  when: >
+      debian_setup_host_specific_firewall_ports is defined and
+      (debian_setup_host_specific_firewall_ports | length > 0)
 
 - name: Open firewalld ports
   ansible.posix.firewalld:
@@ -134,5 +136,7 @@
     permanent: "{{ item.permanent | default(true) }}"
     port: "{{ item.port | default(omit) }}"
     state: enabled
-  loop: "{{ host_specific_firewall_ports }}"
-  when: host_specific_firewall_ports is defined and (host_specific_firewall_ports | length > 0)
+  loop: "{{ debian_setup_host_specific_firewall_ports }}"
+  when: >
+      debian_setup_host_specific_firewall_ports is defined and
+      (debian_setup_host_specific_firewall_ports | length > 0)

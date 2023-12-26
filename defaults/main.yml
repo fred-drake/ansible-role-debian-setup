@@ -1,21 +1,21 @@
 ---
 # The user to use on the machine
-ansible_user: ubuntu
+debian_setup_ansible_user: ubuntu
 
 # URL to use for storing public keys for the user
-authorized_keys_url: 'https://github.com/fred-drake.keys'
+debian_setup_authorized_keys_url: 'https://github.com/fred-drake.keys'
 
 # If set, the user will be added to the 'wheel' group and can sudo without password
-allow_passwordless_sudo: true
+debian_setup_allow_passwordless_sudo: true
 
 # Sets the hostname for the machine.  If null, the inventory_hostname will be used.
-host: "{{ inventory_hostname }}"
+debian_setup_host: "{{ inventory_hostname }}"
 
 # Sets the timezone for the machine.  See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-timezone: America/New_York
+debian_setup_timezone: America/New_York
 
 # Set the literal content that will be added as custom sources for apt
-host_specific_apt_sources: ""
+debian_setup_host_specific_apt_sources: ""
 
 # For any mounts you wish to add.  The mounts should be in a list, with each item being a dictionary
 # with the following keys:
@@ -23,7 +23,7 @@ host_specific_apt_sources: ""
 #   path: the path for the mount
 #   fstype: the filesystem type for the mount
 # see https://docs.ansible.com/ansible/latest/collections/ansible/posix/mount_module.html for more details
-host_specific_mounts: []
+debian_setup_host_specific_mounts: []
 
 # For any firewall ports you wish to open.  The ports should be in a list, with each item being a dictionary
 # with the following keys:
@@ -31,4 +31,4 @@ host_specific_mounts: []
 #   permanent: whether the port should be opened permanently
 #   zone: the zone to open the port in
 # see https://docs.ansible.com/ansible/latest/collections/ansible/posix/firewalld_module.html for more details
-host_specific_firewall_ports: []
+debian_setup_host_specific_firewall_ports: []
