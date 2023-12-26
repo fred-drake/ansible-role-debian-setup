@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: debian_setup
+  namespace: fred_drake
+  author: Fred Drake
+  description: Configuration of my Debian-based systems
+  company: None
+  license: MIT
+
+  min_ansible_version: "2.1"
+  galaxy_tags: []
+dependencies: []

@@ -1,0 +1,11 @@
+---
+- name: Destroy
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Stop and remove container
+      community.docker.docker_container:
+        name: instance
+        state: absent
+        force_kill: true

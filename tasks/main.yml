@@ -1,0 +1,138 @@
+---
+- name: Set authorized keys from GitHub
+  become: false
+  ansible.posix.authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    key: "{{ lookup('url', authorized_keys_url) }}"
+  when: authorized_keys_url is defined and authorized_keys_url != ""
+
+- name: Make sure we have a 'wheel' group
+  ansible.builtin.group:
+    name: wheel
+    state: present
+
+- name: Allow 'wheel' group to have passwordless sudo
+  ansible.builtin.lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+  when: allow_passwordless_sudo is defined and allow_passwordless_sudo
+
+- name: Add sudoers users to wheel group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups:
+      - wheel
+    append: true
+    state: present
+    createhome: true
+  when: allow_passwordless_sudo is defined and allow_passwordless_sudo
+
+- name: Disable automatic daily upgrade
+  ansible.builtin.systemd:
+    name: apt-daily-upgrade.timer
+    enabled: false
+    state: stopped
+    daemon_reload: true
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ host }}"
+  when: host is defined and host != ""
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+  when: timezone is defined and timezone != ""
+
+- name: Write host-specific apt sources file
+  ansible.builtin.copy:
+    content: "{{ host_specific_apt_sources }}"
+    dest: /etc/apt/sources.list.d/custom.sources
+    mode: '0644'
+  when: host_specific_apt_sources is defined and host_specific_apt_sources != ""
+
+- name: Install initial libraries
+  ansible.builtin.apt:
+    name:
+      - net-tools
+      - bridge-utils
+      - python3-pip
+      - neofetch
+      - figlet
+      - jq
+      - vlan
+      - zsh
+      - fontconfig
+      - git
+    state: present
+    update_cache: true
+
+- name: Set terminal setup user to ansible user
+  ansible.builtin.set_fact:
+    terminal_root_user: false
+
+- name: Import terminal tasks for non-root user
+  ansible.builtin.import_tasks: terminal.yml
+
+- name: Set terminal setup user to root user
+  ansible.builtin.set_fact:
+    terminal_root_user: true
+
+- name: Import terminal tasks for root user
+  ansible.builtin.import_tasks: terminal.yml
+
+- name: Install cifs apt dependencies
+  ansible.builtin.apt:
+    name:
+      - smbclient
+      - cifs-utils
+  when: "'cifs' in group_names"
+
+- name: Set credentials file
+  ansible.builtin.template:
+    src: cifs_credentials.j2
+    dest: /etc/cifs_credentials
+    mode: '0600'
+  when: "'cifs' in group_names"
+
+- name: Install nfs apt dependencies
+  ansible.builtin.apt:
+    name:
+      - nfs-common
+  when: "'nfs' in group_names"
+
+- name: Create open app logs directory
+  ansible.builtin.file:
+    state: directory
+    name: /var/log/custom_logs
+    mode: '0777'
+
+- name: Add host-specific mounts
+  ansible.posix.mount:
+    path: "{{ item.path | default(omit) }}"
+    src: "{{ item.src | default(omit) }}"
+    fstype: "{{ item.fstype | default(omit) }}"
+    state: mounted
+  loop: "{{ host_specific_mounts }}"
+  when: host_specific_mounts is defined and (host_specific_mounts | length > 0)
+
+- name: Install firewalld for port opening
+  ansible.builtin.apt:
+    name:
+      - firewalld
+    state: present
+    update_cache: true
+  when: host_specific_firewall_ports is defined and (host_specific_firewall_ports | length > 0)
+
+- name: Open firewalld ports
+  ansible.posix.firewalld:
+    zone: "{{ item.zone | default('public') }}"
+    permanent: "{{ item.permanent | default(true) }}"
+    port: "{{ item.port | default(omit) }}"
+    state: enabled
+  loop: "{{ host_specific_firewall_ports }}"
+  when: host_specific_firewall_ports is defined and (host_specific_firewall_ports | length > 0)

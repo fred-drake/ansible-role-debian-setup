@@ -1,0 +1,21 @@
+{
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "yaml.validate": true,
+  "yaml.schemaStore.enable": true,
+  "terminal.integrated.fontFamily": "monospace",
+  "sops.enabled": true,
+  "sops.binPath": "/usr/local/bin/sops",
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-inventory.json": "file:///workspaces/infrastructure/ansible/inventories/group_vars/all/docker.yml"
+  },
+  "files.associations": {
+    "*.sops.yml": "yaml",
+    "**/roles/**/*.{yml,yaml}": "ansible",
+    "**/playbooks/**/*.{yml,yaml}": "ansible"
+  },
+  "ansible.python.interpreterPath": "/workspaces/infrastructure/.direnv/python-3.10.0/bin/python"
+}
