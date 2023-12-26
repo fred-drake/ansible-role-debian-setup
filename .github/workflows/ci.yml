@@ -1,0 +1,43 @@
+---
+name: CI
+"on":
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+defaults:
+  run:
+    working-directory: .
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build -t my-docker-image .
+
+      - name: Lint Docker image
+        run: >
+          docker run
+          -v .:/workspaces/ansible-role-debian-setup
+          --rm my-docker-image just lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build -t my-docker-image .
+
+      - name: Lint Docker image
+        run: >
+          docker run
+          -v /var/run/docker.sock:/var/run/docker.sock
+          -v .:/workspaces/ansible-role-debian-setup
+          --rm my-docker-image just test

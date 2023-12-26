@@ -2,7 +2,7 @@
 FROM python:3.10 as base
 
 # Project name
-ENV PROJECT_NAME=ansible-playbook-template
+ENV PROJECT_NAME=ansible-role-debian-setup
 
 
 # Ensure non-interactive apt-get installs
@@ -108,8 +108,10 @@ RUN echo "eval '$(direnv hook bash)'" >> "/root/.bashrc"
 FROM staging as development
 WORKDIR /workspaces/${PROJECT_NAME}
 ENV SOPS_AGE_KEY_FILE=/root/.age/ansible-key.txt
+COPY galaxy-requirements.yml .
 RUN <<EOF
   ansible-galaxy install -r galaxy-requirements.yml
+  rm -f galaxy-requirements.yml
   cp /etc/skel/.bashrc /root/.bashrc
 EOF
 
