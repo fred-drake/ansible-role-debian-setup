@@ -1,8 +1,10 @@
 default: lint test
+deps:
+    pip install -r dev-requirements.txt
+    ansible-galaxy install -r galaxy-requirements.yml --force
 lint:
-    hadolint Dockerfile
     yamllint .
-    ANSIBLE_ROLES_PATH=./ ansible-lint .
+    ansible-lint .
 
 test:
     molecule test
