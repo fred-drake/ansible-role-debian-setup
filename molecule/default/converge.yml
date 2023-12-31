@@ -3,6 +3,7 @@
   hosts: all
   gather_facts: false
   vars:
+    remote_tmp: "$HOME/.ansible/tmp"
     ansible_user: root
     debian_setup_host: ""  # Docker container can't set hostname
     debian_setup_timezone: ""  # Docker container can't set timezone

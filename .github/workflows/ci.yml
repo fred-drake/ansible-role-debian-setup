@@ -18,39 +18,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t my-docker-image .
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-      - name: Check Dockerfile with Hadolint
-        run: docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
+      - name: Install PIP dependencies
+        run: pip install -r dev-requirements.txt
 
-# - name: Set up Python 3.10.13
-#   uses: actions/setup-python@v5
-#   with:
-#     python-version: "3.10"
-# - name: Install dependencies
-#   run: pip install yamllint ansible-lint
+      - name: Install Galaxy dependencies
+        run: ansible-galaxy install -r galaxy-requirements.yml
 
-# - name: Check all yaml with yamllint
-#   run: yamllint .
+      - name: Check all yaml with yamllint
+        run: yamllint .
 
-# - name: Call lint operation
-#   run: >
-#     docker run
-#     -v .:/workspaces/ansible-role-debian-setup
-#     --rm my-docker-image just lint
-# test:
-#   runs-on: ubuntu-latest
-#   steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v2
+      - name: Check all ansible with ansible-lint
+        run: ansible-lint .
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-#     - name: Build Docker image
-#       run: docker build -t my-docker-image .
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-#     - name: Call test operation
-#       run: >
-#         docker run
-#         -v /var/run/docker.sock:/var/run/docker.sock
-#         -v .:/workspaces/ansible-role-debian-setup
-#         --rm my-docker-image just test
+      - name: Install PIP dependencies
+        run: pip install -r dev-requirements.txt
+
+      - name: Install Galaxy dependencies
+        run: ansible-galaxy install -r galaxy-requirements.yml
+
+      - name: Run molecule tests
+        run: molecule test --destroy never
+        env:
+          PY_COLORS: "1"
+          ANSIBLE_FORCE_COLOR: "1"
