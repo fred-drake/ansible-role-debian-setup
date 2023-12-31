@@ -8,3 +8,6 @@ lint:
 
 test:
     molecule test
+
+ci:
+    act
